@@ -98,7 +98,7 @@ typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, Valu
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator  map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::operator++(int) {
-    tree_iterator temp = (*this);
+    reverse_tree_iterator temp = (*this);
     ++(*this);
     return temp;
 }
@@ -107,7 +107,7 @@ typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator  map_avl<KeyT, Value
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator  map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::operator--(int) {
-    tree_iterator temp = (*this);
+    reverse_tree_iterator temp = (*this);
     --(*this);
     return temp;
 }
