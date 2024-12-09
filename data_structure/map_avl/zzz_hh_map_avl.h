@@ -21,20 +21,20 @@ class map_avl {
                 node(const MapT& m);
                 node(const MapT& m, node* l, node* r, node* p); 
 
-                void set_height();
                 int get_height(node* n);
+                void set_height();
                 int balance_value();
                 void set_left(node* n);            
                 void set_right(node* n);            
-                void set_parent(node* papa, node* n);            
+                void set_parent(node* _parent, node* n);            
         };
 
         class tree_iterator {
             protected:
                 node* ptr;
+                map_avl* container;
             public:
-                tree_iterator();            
-                tree_iterator(node* p);            
+                tree_iterator(node* p, map_avl* c);            
 
                 MapT& operator * ();            
                 MapT* operator -> ();            
@@ -42,17 +42,17 @@ class map_avl {
                 bool  operator != (const tree_iterator& other);            
                 
                 tree_iterator& operator++();
-                tree_iterator& operator--(); // not test
-                tree_iterator operator++(int); // not test    
-                tree_iterator operator--(int); // not test   
+                tree_iterator& operator--();
+                tree_iterator operator++(int);    
+                tree_iterator operator--(int);   
         };   
 
         class reverse_tree_iterator {
             protected:
                 node* ptr;
+                map_avl* container;
             public:
-                reverse_tree_iterator();
-                reverse_tree_iterator(node* p);
+                reverse_tree_iterator(node* p, map_avl* c);
 
                 MapT& operator * ();
                 MapT* operator -> ();
@@ -60,9 +60,9 @@ class map_avl {
                 bool  operator != (const reverse_tree_iterator& other);   
 
                 reverse_tree_iterator& operator++(); 
-                reverse_tree_iterator& operator--(); // not test
-                reverse_tree_iterator operator++(int); // not test   
-                reverse_tree_iterator operator--(int); // not test   
+                reverse_tree_iterator& operator--();
+                reverse_tree_iterator operator++(int);   
+                reverse_tree_iterator operator--(int);   
         };
 
     protected:
@@ -72,16 +72,18 @@ class map_avl {
         
         int compare(const KeyT& k1, const KeyT& k2);            
         node* find_node(const KeyT& k,node* n, node* &parent);            
-        node* find_min_node(node* n);            
-        node* find_max_node(node* n);            
-        node* &child_link(node* parent, const KeyT& k);            
-        node* insert_node(const MapT& val, node*& n, node*& ptr); // not using
-        node* erase_node(const KeyT &key, node*& n);
+        node* find_min_node();            
+        node* find_max_node();            
+        node* &child_link(node* parent, const KeyT& k);   
+        node* insert_node(const KeyT& key);         
+        node* insert_node_recursive(const MapT& val, node*& n, node*& ptr);
+        void erase_node(const KeyT& key, node* n);
+        node* erase_node_recursive(const KeyT &key, node*& n);
         void delete_all_nodes(node *n);            
         node* rebalance(node* n);            
         node* rotate_left_child(node* n);            
         node* rotate_right_child(node* n);             
-        node* copy(node* src); // not test
+        node* copy(node* src, node* _parent); 
 
         // debug
         void show_left_right(node* n);
@@ -93,19 +95,19 @@ class map_avl {
 
         map_avl(const Comp& c = Comp());// default constructor            
         ~map_avl();            
-        map_avl(const map_avl<KeyT,ValueT,Comp> & other);// copy constructor // not test     
-        map_avl<KeyT,ValueT,Comp>& operator = (map_avl<KeyT,ValueT,Comp> other);// copy assignment // not test 
+        map_avl(const map_avl<KeyT,ValueT,Comp> & other);// copy constructor 
+        map_avl<KeyT,ValueT,Comp>& operator = (map_avl<KeyT,ValueT,Comp> other);// copy assignment
         
         void clear();            
         bool empty();            
         size_t size();            
         
         iterator begin();            
-        reverse_iterator rbegin();            
         iterator end();            
+        reverse_iterator rbegin();            
         reverse_iterator rend();            
-        iterator find(const KeyT &key);            
         
+        iterator find(const KeyT &key);            
         ValueT& operator[](const KeyT& key);            
         std::pair<iterator, bool> insert(const MapT& key_val);            
         bool erase(const KeyT& k);               
@@ -131,22 +133,20 @@ template <typename KeyT, typename ValueT, typename Comp>
 void zzz::map_avl<KeyT, ValueT, Comp>::show_left_right(typename zzz::map_avl<KeyT, ValueT, Comp>::node* r) {
     if(r->left){
         auto [a, b] = r->left->data;
-        // std::cout << "<" << a << "," << b << ">";
         std::cout << "<" << a << "," << ">";
     }else{
         std::cout << "<none>";
     }
-    // std::cout << "[" << r->data.first << "," << r->data.second << "]";
-    std::cout << "[" << r->data.first << ", p = ";
-    if(r->parent){
-        std::cout << r->parent->data.first;
-    }else{
-        std::cout << "_";
-    }
+    std::cout << "[" << r->data.first << ", h = ";
+    std::cout << r->height;
+    // if(r->parent){
+    //     std::cout << r->parent->data.first;
+    // }else{
+    //     std::cout << "_";
+    // }
     std::cout << "]";
     if(r->right){
         auto [a, b] = r->right->data;
-        // std::cout << "<" << a << "," << b << ">";
         std::cout << "<" << a << ">";
     }else{
         std::cout << "<none>";
