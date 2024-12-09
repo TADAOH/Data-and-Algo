@@ -2,7 +2,6 @@
 #define ZZZ_MAP_AVL_ITERATOR
 
 /*
-tree_iterator();
 tree_iterator(node* p);
 
 MapT& operator * ();
@@ -21,11 +20,8 @@ tree_iterator operator--(int);
 namespace zzz {
 
 template <typename KeyT, typename ValueT, typename Comp>
-map_avl<KeyT, ValueT, Comp>::tree_iterator::tree_iterator(): ptr(NULL) {}
-
-
-template <typename KeyT, typename ValueT, typename Comp>
-map_avl<KeyT, ValueT, Comp>::tree_iterator::tree_iterator(typename map_avl<KeyT, ValueT, Comp>::node* r): ptr(r) {}
+map_avl<KeyT, ValueT, Comp>::tree_iterator::tree_iterator(typename map_avl<KeyT, ValueT, Comp>::node* r, 
+                                                                   map_avl<KeyT, ValueT, Comp>* c): ptr(r), container(c) {}
 
 
 template <typename KeyT, typename ValueT, typename Comp>
@@ -54,6 +50,7 @@ bool map_avl<KeyT, ValueT, Comp>::tree_iterator::operator != (const typename map
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::tree_iterator&  map_avl<KeyT, ValueT, Comp>::tree_iterator::operator++() {
     if(!ptr){
+        ptr = container->find_min_node();
         return *this;
     }
     if(ptr->right){
@@ -62,12 +59,12 @@ typename map_avl<KeyT, ValueT, Comp>::tree_iterator&  map_avl<KeyT, ValueT, Comp
             ptr = ptr->left;
         }
     }else{
-        node* papa = ptr->parent;
-        while(papa && papa->right == ptr){
-            ptr  = papa;
-            papa = papa->parent;
+        node* _parent = ptr->parent;
+        while(_parent && _parent->right == ptr){
+            ptr  = _parent;
+            _parent = _parent->parent;
         }
-        ptr = papa;
+        ptr = _parent;
     }
     return *this;
 }
@@ -76,6 +73,7 @@ typename map_avl<KeyT, ValueT, Comp>::tree_iterator&  map_avl<KeyT, ValueT, Comp
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::tree_iterator&  map_avl<KeyT, ValueT, Comp>::tree_iterator::operator--() {
     if(!ptr){
+        ptr = container->find_max_node();
         return *this;
     }
     if(ptr->left){
@@ -84,12 +82,12 @@ typename map_avl<KeyT, ValueT, Comp>::tree_iterator&  map_avl<KeyT, ValueT, Comp
             ptr = ptr->right;
         }
     }else{
-        node* papa = ptr->parent;
-        while(papa && papa->left == ptr){
-            ptr = papa;
-            papa = papa->parent;
+        node* _parent = ptr->parent;
+        while(_parent && _parent->left == ptr){
+            ptr = _parent;
+            _parent = _parent->parent;
         }
-        ptr  = papa;
+        ptr  = _parent;
     }
     return *this;
 }
