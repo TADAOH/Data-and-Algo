@@ -11,7 +11,7 @@ int get_height(node* n);
 int balance_value();
 void set_left(node* n);
 void set_right(node* n); 
-void set_parent(node* papa, node* n);
+void set_parent(node* _parent, node* n);
 */
 
 #include "zzz_hh_map_avl.h"
@@ -69,15 +69,15 @@ void map_avl<KeyT, ValueT, Comp>::node::set_right(typename map_avl<KeyT, ValueT,
 
 
 template <typename KeyT, typename ValueT, typename Comp>
-void map_avl<KeyT, ValueT, Comp>::node::set_parent(node* papa, node* n) {
-    if(papa){
-        if(papa->left == n) {
-            papa->left = this;
+void map_avl<KeyT, ValueT, Comp>::node::set_parent(node* _parent, node* n) {
+    if(_parent){
+        if(_parent->left == n) {
+            _parent->left = this;
         }else{
-            papa->right = this;
+            _parent->right = this;
         }
     }
-    this->parent = papa;
+    this->parent = _parent;
 }
 
 
