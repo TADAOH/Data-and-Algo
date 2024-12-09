@@ -2,8 +2,7 @@
 #define ZZZ_MAP_AVL_REVERSE_ITERATOR
 
 /*
-reverse_tree_iterator();
-reverse_tree_iterator(node* p);
+reverse_tree_iterator(node* p, map_avl* c);
 
 MapT& operator * ();
 MapT* operator -> ();
@@ -21,11 +20,8 @@ reverse_tree_iterator operator--(int);
 namespace zzz {
 
 template <typename KeyT, typename ValueT, typename Comp>
-map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::reverse_tree_iterator(): ptr(NULL) {}
-
-
-template <typename KeyT, typename ValueT, typename Comp>
-map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::reverse_tree_iterator(typename map_avl<KeyT, ValueT, Comp>::node* r): ptr(r) {}
+map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::reverse_tree_iterator(typename map_avl<KeyT, ValueT, Comp>::node* r,
+                                                                                   map_avl<KeyT, ValueT, Comp>* c): ptr(r), container(c) {}
 
 
 template <typename KeyT, typename ValueT, typename Comp>
@@ -55,6 +51,7 @@ bool map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::operator != (const type
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::operator++() {
     if(!ptr){
+        ptr = container->find_max_node();
         return *this;
     }
     if(ptr->left){
@@ -63,12 +60,12 @@ typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, Valu
             ptr = ptr->right;
         }
     }else{
-        node* papa = ptr->parent;
-        while(papa && papa->left == ptr){
-            ptr = papa;
-            papa = papa->parent;
+        node* _parent = ptr->parent;
+        while(_parent && _parent->left == ptr){
+            ptr = _parent;
+            _parent = _parent->parent;
         }
-        ptr  = papa;
+        ptr  = _parent;
     }
     return *this;
 }
@@ -77,6 +74,7 @@ typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, Valu
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator::operator--() {
     if(!ptr){
+        ptr = container->find_min_node();
         return *this;
     }
     if(ptr->right){
@@ -85,12 +83,12 @@ typename map_avl<KeyT, ValueT, Comp>::reverse_tree_iterator&  map_avl<KeyT, Valu
             ptr = ptr->left;
         }
     }else{
-        node* papa = ptr->parent;
-        while(papa && papa->right == ptr){
-            ptr  = papa;
-            papa = papa->parent;
+        node* _parent = ptr->parent;
+        while(_parent && _parent->right == ptr){
+            ptr  = _parent;
+            _parent = _parent->parent;
         }
-        ptr = papa;
+        ptr = _parent;
     }
     return *this;
 }
