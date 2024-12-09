@@ -9,7 +9,7 @@ map_avl(const Comp& c = Comp());
 map_avl(const map_avl<KeyT,ValueT,Comp> & other);
 map_avl<KeyT,ValueT,Comp>& operator=(map_avl<KeyT,ValueT,Comp> other);
 
-node* copy(node* src);
+node* copy(node* src, node* _parent);
 */
 
 namespace zzz {
@@ -28,7 +28,7 @@ template <typename KeyT, typename ValueT, typename Comp>
 map_avl<KeyT, ValueT, Comp>::map_avl(const map_avl<KeyT, ValueT, Comp>& other){
     map_size = other.map_size;
     lesser = other.lesser;
-    map_root = copy(other.map_root);
+    map_root = copy(other.map_root, NULL);
 }
 
 
@@ -42,15 +42,14 @@ map_avl<KeyT,ValueT,Comp>& map_avl<KeyT, ValueT, Comp>::operator = (map_avl<KeyT
 
 
 template <typename KeyT, typename ValueT, typename Comp>
-typename map_avl<KeyT, ValueT, Comp>::node*  map_avl<KeyT, ValueT, Comp>::copy(node* src) {
+typename map_avl<KeyT, ValueT, Comp>::node*  map_avl<KeyT, ValueT, Comp>::copy(node* src, node* _parent) {
     if(!src){ return src; }
-    node* copy_node = new node(src->data, NULL, NULL, src->parent);
-    copy_node->height = src->height;
-    copy_node->left = copy(src->left);
-    copy_node->right = copy(src->right);
-    return copy_node;
+    node* _copy = new node(src->data, NULL, NULL, _parent);
+    _copy->height = src->height;
+    _copy->left = copy(src->left, _copy);
+    _copy->right = copy(src->right, _copy);
+    return _copy;
 }
-
 
 
 }
