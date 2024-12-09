@@ -41,26 +41,25 @@ class map_avl {
                     this->right = n;
                     if(n){ this->right->parent = this; }
                 }
-                void set_parent(node* papa, node* n){
-                    if(papa){
-                        if(papa->left == n) {
-                            papa->left = this;
+                void set_parent(node* _parent, node* n){
+                    if(_parent){
+                        if(_parent->left == n) {
+                            _parent->left = this;
                         }else{
-                            papa->right = this;
+                            _parent->right = this;
                         }
                     }
-                    this->parent = papa;
+                    this->parent = _parent;
                 }                    
         };
 
         class tree_iterator {
             protected:
                 node* ptr;
+                map_avl* container;
             public:
-                tree_iterator():
-                    ptr(NULL) {}
-                tree_iterator(node* p):
-                    ptr(p) {}
+                tree_iterator(node* p, map_avl* c):
+                    ptr(p), container(c) {}
                 
                 MapT& operator * (){
                     return ptr->data;
@@ -77,6 +76,7 @@ class map_avl {
 
                 tree_iterator& operator++(){
                     if(!ptr){
+                        ptr = container->find_min_node();
                         return *this;
                     }
                     if(ptr->right){
@@ -85,17 +85,18 @@ class map_avl {
                             ptr = ptr->left;
                         }
                     }else{
-                        node* papa = ptr->parent;
-                        while(papa && papa->right == ptr){
-                            ptr  = papa;
-                            papa = papa->parent;
+                        node* _parent = ptr->parent;
+                        while(_parent && _parent->right == ptr){
+                            ptr  = _parent;
+                            _parent = _parent->parent;
                         }
-                        ptr = papa;
+                        ptr = _parent;
                     }
                     return *this;                   
                 }
                 tree_iterator& operator--(){
                     if(!ptr){
+                        ptr = container->find_max_node();
                         return *this;
                     }
                     if(ptr->left){
@@ -104,12 +105,12 @@ class map_avl {
                             ptr = ptr->right;
                         }
                     }else{
-                        node* papa = ptr->parent;
-                        while(papa && papa->left == ptr){
-                            ptr = papa;
-                            papa = papa->parent;
+                        node* _parent = ptr->parent;
+                        while(_parent && _parent->left == ptr){
+                            ptr = _parent;
+                            _parent = _parent->parent;
                         }
-                        ptr  = papa;
+                        ptr  = _parent;
                     }
                     return *this;                  
                 }
@@ -128,9 +129,9 @@ class map_avl {
         class reverse_tree_iterator {
             protected:
                 node* ptr;
+                map_avl* container;
             public:
-                reverse_tree_iterator(): ptr(NULL) {}
-                reverse_tree_iterator(node* p): ptr(p) {}
+                reverse_tree_iterator(node* p, map_avl* c): ptr(p), container(c) {}
 
                 MapT& operator * () { return ptr->data; }
                 MapT* operator -> () { return &(ptr->data);}
@@ -139,6 +140,7 @@ class map_avl {
 
                 reverse_tree_iterator& operator++() {
                     if(!ptr){
+                        ptr = container->find_max_node();
                         return *this;
                     }
                     if(ptr->left){
@@ -147,17 +149,18 @@ class map_avl {
                             ptr = ptr->right;
                         }
                     }else{
-                        node* papa = ptr->parent;
-                        while(papa && papa->left == ptr){
-                            ptr = papa;
-                            papa = papa->parent;
+                        node* _parent = ptr->parent;
+                        while(_parent && _parent->left == ptr){
+                            ptr = _parent;
+                            _parent = _parent->parent;
                         }
-                        ptr  = papa;
+                        ptr  = _parent;
                     }
                     return *this;
                 }
                 reverse_tree_iterator& operator--() {
                     if(!ptr){
+                        ptr = container->find_min_node();
                         return *this;
                     }
                     if(ptr->right){
@@ -166,12 +169,12 @@ class map_avl {
                             ptr = ptr->left;
                         }
                     }else{
-                        node* papa = ptr->parent;
-                        while(papa && papa->right == ptr){
-                            ptr  = papa;
-                            papa = papa->parent;
+                        node* _parent = ptr->parent;
+                        while(_parent && _parent->right == ptr){
+                            ptr  = _parent;
+                            _parent = _parent->parent;
                         }
-                        ptr = papa;
+                        ptr = _parent;
                     }
                     return *this;                    
                 }
@@ -197,52 +200,87 @@ class map_avl {
             if(lesser(k2, k1)) { return 1; }
             return 0;
         }
-        node* find_node(const KeyT& k,node* pointer, node* &parent){
+        node* find_node(const KeyT& key,node* pointer, node*& _parent){
             while(pointer){
-                int not_equal = compare(k, pointer->data.first);
+                int not_equal = compare(key, pointer->data.first);
                 if(!not_equal){ return pointer; }
-                parent = pointer;
+                _parent = pointer;
                 pointer = not_equal < 0 ? pointer->left : pointer->right;
             }
             return NULL;
         }
-        node* find_min_node(node* r){
-            if(!r){ return r; }
-            while(r->left) { r = r->left; }
-            return r;
+        node* find_min_node(){
+            node* n = map_root;
+            if(!n){ return n; }
+            while(n->left) { n = n->left; }
+            return n;
         }
-        node* find_max_node(node* r){
-            if(!r){ return r; }
-            while(r->right) { r = r->right; }
-            return r;
+        node* find_max_node(){
+            node* n = map_root;
+            if(!n){ return n; }
+            while(n->right) { n = n->right; }
+            return n;
         }
-        node* &child_link(node* parent, const KeyT& k){
-            if(!parent) { return map_root; }
-            return lesser(k, parent->data.first) ? parent->left : parent->right;
+        node* &child_link(node* _parent, const KeyT& k){
+            if(!_parent) { return map_root; }
+            return lesser(k, _parent->data.first) ? _parent->left : _parent->right;
         }
-        node* erase_node(const KeyT &k, node*& r){
-            if(!r){ return r; }
-            int not_equal = compare(k, r->data.first);
-            if(not_equal < 0) {
-                r->set_left(erase_node(k, r->left));
-            }else if(not_equal > 0) {
-                r->set_right(erase_node(k, r->right));
-            }else{
-                if(!r->left || !r->right) {
-                    node* temp_node = r;
-                    r = (!r->left ? r->right : r->left);
-                    delete temp_node;
-                    map_size--;
-                }else{
-                    node* replace_node = r->right;
-                    while(replace_node->left) {
-                        replace_node = replace_node->left;
-                    }
-                    r->data = replace_node->data;
-                    r->set_right(erase_node(replace_node->data.first, r->right));
+        node* insert_node(const KeyT& key) {
+            node* _parent = NULL;
+            node* that_node = find_node(key, map_root, _parent);
+            if(!that_node){
+                ++map_size;
+                that_node = new node(std::make_pair(key, ValueT()), NULL, NULL, _parent);
+                child_link(_parent, key) = that_node;
+                while(_parent) {
+                    _parent = rebalance(_parent);
+                    map_root = _parent;
+                    _parent = _parent->parent;
                 }
             }
-            return r;
+            return that_node;            
+        }
+        void erase_node(const KeyT& key, node* n) {
+            while(n){
+                int not_equal = compare(key, n->data.first);
+                if(not_equal < 0) {
+                    n = n->left;
+                }else if(not_equal > 0) {
+                    n = n->right;
+                }else{
+                    if(n->left && n->right){
+                        node* replace = n->right;
+                        while(replace->left){
+                            replace = replace->left;
+                        }
+                        n->data = replace->data;
+                        n = replace;
+                    }
+                    node* temp = n;
+                    node* _parent  = n->parent;
+                    node* replace = (!n->left ? n->right : n->left);
+                    --map_size;
+                    if(_parent) {
+                        if(_parent->left == n){
+                            _parent->left = replace;
+                        }else{
+                            _parent->right = replace;
+                        }
+                    }else{
+                        map_root = replace;
+                    }
+                    if(replace){
+                        replace->parent = _parent;
+                    }
+                    while(_parent){
+                        _parent = rebalance(_parent);
+                        map_root = _parent;
+                        _parent = _parent->parent;
+                    }
+                    delete temp;
+                    break;
+                }
+            }            
         }
         void delete_all_nodes(node *n){
             if(!n){ return; }
@@ -289,6 +327,17 @@ class map_avl {
 
             return new_root;            
         }
+        node* copy(node* src, node* _parent) {
+            if(!src){ return NULL; }
+            node* _copy = new node(src->data, NULL, NULL, _parent);
+            _copy->height = src->height;
+            _copy->left = copy(src->left, _copy);
+            _copy->right = copy(src->right, _copy);
+            return _copy;
+        }
+        // debug
+        void show_left_right(node* n);
+        void pre_order(node* r);
 
     public:
         typedef tree_iterator iterator;
@@ -299,7 +348,18 @@ class map_avl {
         ~map_avl(){
             clear();
         }
-        
+        map_avl(const map_avl<KeyT,ValueT,Comp> & other){
+            map_size = other.map_size;
+            lesser = other.lesser;
+            map_root = copy(other.map_root, NULL);            
+        }
+        map_avl<KeyT,ValueT,Comp>& operator = (map_avl<KeyT,ValueT,Comp> other){
+            std::swap(this->map_root, other.map_root);
+            std::swap(this->lesser, other.lesser);
+            std::swap(this->map_size, other.map_size);
+            return *this;            
+        }
+
         void clear(){
             delete_all_nodes(map_root);
             map_root = NULL;
@@ -313,62 +373,79 @@ class map_avl {
         }
         
         iterator begin(){
-            return iterator(find_min_node(map_root));
+            return iterator(find_min_node(), this);
         }
         iterator end(){
-            return iterator();
+            return iterator(NULL, this);
         }
         iterator find(const KeyT &k){
-            node* parent = NULL;
-            return iterator(find_node(k, map_root, parent));
+            node* _parent = NULL;
+            return iterator(find_node(k, map_root, _parent), this);
         }
-        reverse_iterator rebind() {
-            return reverse_iterator(find_max_node(map_root));
+        reverse_iterator rbegin() {
+            return reverse_iterator(find_max_node(), this);
         }
         reverse_iterator rend() {
-            return reverse_iterator();
+            return reverse_iterator(NULL, this);
         }
 
         ValueT& operator[](const KeyT& key){
-            node* papa = NULL;
-            node* that_node = find_node(key, map_root, papa);
-            if(!that_node) {
-                ++map_size;
-                that_node = new node(std::make_pair(key, ValueT()), NULL, NULL, papa);
-                child_link(papa, key) = that_node;
-                while(papa) {
-                    papa = rebalance(papa);
-                    map_root = papa;                   
-                    papa = papa->parent;
-                }
-            }
+            node* that_node =  insert_node(key);
             return that_node->data.second;            
         }
         std::pair<iterator, bool> insert(const MapT& key_val){
-            bool success = false;
-            node* papa = NULL;
-            node* that_node = find_node(key_val.first, map_root, papa);
-            if(!that_node) {
-                success = true;
-                ++map_size;
-                that_node = new node(key_val, NULL, NULL, papa);
-                child_link(papa, key_val.first) = that_node;
-
-                while(papa) {
-                    papa = rebalance(papa);
-                    map_root = papa;
-                    papa = papa->parent;
-                }
-            }
-            return std::make_pair(iterator(that_node), success);           
+            size_t init = map_size;
+            node* that_node = insert_node(key_val.first);
+            if(map_size == init) { return std::make_pair( iterator(that_node, this),false ); }
+            that_node->data.second = key_val.second;
+            return std::make_pair(iterator(that_node, this), true);          
         }
         bool erase(const KeyT& k){
-            int init = map_size;
+            size_t init = map_size;
             erase_node(k, map_root);
-            return init != map_size;
+            return init > map_size;
         } 
     
+        // debug
+        void show_structure(){ // pre-order travesal
+            pre_order(map_root);
+        }
 };
 }
+
+template <typename KeyT, typename ValueT, typename Comp>
+void zzz::map_avl<KeyT, ValueT, Comp>::pre_order(typename zzz::map_avl<KeyT, ValueT, Comp>::node* n) {
+    if(!n){ return; }
+    show_left_right(n);
+    pre_order(n->left);
+    pre_order(n->right);
+}
+
+
+template <typename KeyT, typename ValueT, typename Comp>
+void zzz::map_avl<KeyT, ValueT, Comp>::show_left_right(typename zzz::map_avl<KeyT, ValueT, Comp>::node* r) {
+    if(r->left){
+        auto [a, b] = r->left->data;
+        std::cout << "<" << a << "," << ">";
+    }else{
+        std::cout << "<none>";
+    }
+    std::cout << "[" << r->data.first << ", p = ";
+    std::cout << r->height;
+    if(r->parent){
+        std::cout << r->parent->data.first;
+    }else{
+        std::cout << "_";
+    }
+    std::cout << "]";
+    if(r->right){
+        auto [a, b] = r->right->data;
+        std::cout << "<" << a << ">";
+    }else{
+        std::cout << "<none>";
+    }
+    std::cout << "\n";
+}
+
 
 #endif
