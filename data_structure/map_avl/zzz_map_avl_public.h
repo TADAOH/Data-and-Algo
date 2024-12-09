@@ -9,8 +9,8 @@ bool empty();
 void clear();
 
 iterator begin();
-reverse_iterator rbegin();
 iterator end();
+reverse_iterator rbegin();
 reverse_iterator rend();
 
 iterator find(const KeyT &key);
@@ -43,72 +43,49 @@ void map_avl<KeyT, ValueT, Comp>::clear(){
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::iterator  map_avl<KeyT, ValueT, Comp>::begin() {
-    return iterator(find_min_node(map_root));
+    return iterator(find_min_node(), this);
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_iterator  map_avl<KeyT, ValueT, Comp>::rbegin() {
-    return reverse_iterator(find_max_node(map_root));
+    return reverse_iterator(find_max_node(), this);
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::iterator map_avl<KeyT, ValueT, Comp>::end(){
-    return iterator();
+    return iterator(NULL, this);
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::reverse_iterator map_avl<KeyT, ValueT, Comp>::rend(){
-    return reverse_iterator();
+    return reverse_iterator(NULL, this);
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 typename map_avl<KeyT, ValueT, Comp>::iterator map_avl<KeyT, ValueT, Comp>::find(const KeyT& key) {
     node* parent = NULL;
-    return iterator(find_node(key, map_root, parent));
+    return iterator(find_node(key, map_root, parent), this);
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 ValueT& map_avl<KeyT, ValueT, Comp>::operator [] (const KeyT& key) {
-    node* papa = NULL;
-    node* that_node = find_node(key, map_root, papa);
-    if(!that_node) {
-        map_size++;
-        that_node = new node(std::make_pair(key, ValueT()), NULL, NULL, papa);
-        child_link(papa, key) = that_node;
-
-        while(papa) {
-            papa = rebalance(papa);
-            map_root = papa;
-            papa = papa->parent;
-        }
-    }
+    node* that_node =  insert_node(key);
     return that_node->data.second;
 }
 
 
 template <typename KeyT, typename ValueT, typename Comp>
 std::pair<typename map_avl<KeyT, ValueT, Comp>::iterator, bool>  map_avl<KeyT, ValueT, Comp>::insert(const MapT& key_val) {
-    bool success = false;
-    node* papa = NULL;
-    node* that_node = find_node(key_val.first, map_root, papa);
-    if(!that_node) {
-        success = true;
-        map_size++;
-        that_node = new node(key_val, NULL, NULL, papa);
-        child_link(papa, key_val.first) = that_node;
-
-        while(papa) {
-            papa = rebalance(papa);
-            map_root = papa;
-            papa = papa->parent;
-        }
-    }
-    return std::make_pair(iterator(that_node), success);
+    size_t init = map_size;
+    node* that_node = insert_node(key_val.first);
+    if(map_size == init) { return std::make_pair( iterator(that_node, this),false ); }
+    that_node->data.second = key_val.second;
+    return std::make_pair(iterator(that_node, this), true);
 }
 
 
